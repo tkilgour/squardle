@@ -1,14 +1,17 @@
 <script setup lang="ts">
+import { storeToRefs } from 'pinia';
 import { computed, ref, watch } from 'vue'
-import { squares } from "../squares";
+import { useGameStore } from "../stores/game";
 
-const guess = ref<number | null>(null)
+const store = useGameStore()
+
+const guess = computed({
+  get: () => store.currentGuessNumber,
+  set: (val: number) => store.updateCurrentGuess(val)
+})
 let correct = ref<boolean | null>(null)
 const squareRoot = computed(() => Math.sqrt(guess.value))
-
-const checkSquare = () => {
-  correct.value = (squares.includes(guess.value))
-}
+const { answer } = storeToRefs(store)
 
 watch(guess, () => {
   correct.value = null;
@@ -17,12 +20,16 @@ watch(guess, () => {
 </script>
 
 <template>
-  <form @submit.prevent="checkSquare">
+  <form @submit.prevent="store.checkGuess(guess)">
     <label for="prime-guess">Enter your guess:</label>
     <input v-model="guess" id="prime-guess" type="number" min="10000" max="99999">
     <button :disabled="!guess" type="submit">Check Answer</button>
     <span v-if="correct">✔</span><span v-if="correct === false">✘</span>
   </form>
+
+  <div>
+    {{ answer }}
+  </div>
 
   <div v-if="correct === false">
     <h2>Square Root</h2>
